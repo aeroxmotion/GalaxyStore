@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Testing GalaxyStore</title>
+  </head>
+  <body>
+    <shopping-cart></shopping-cart>
+
+    <script type="module">
+      import { setup, html, GalaxyElement } from 'https://cdn.jsdelivr.net/gh/LosMaquios/GalaxyJS/dist/galaxy.esm.js'
+      import { GalaxyStore } from './src/index.js'
+
+      class ShoppingCount extends GalaxyElement {
+        static get template () {
+          return html`Items added: {{ items.length }}`
+        }
+
+        constructor () {
+          super()
+
+          this.$store.mapState(this, ['items'])
+        }
+      }
+
+      class ShoppingList extends GalaxyElement {
+        static get template () {
+          return html`
+            <ul>
+              <li *for="item in items" by="item">
+                {{ item.name }} <strong>\${{ item.price }}</strong>
+                <button type="button" @click="removeItem(item)">&times;</button>
+              </li>
+            </ul>
+          `
+        }
+
+        constructor () {
+          super()
+
+          this.$store.mapState(this, ['items'])
+          this.$store.mapMutations(this, ['removeItem'])
+        }
+      }
+
+      class ShoppingCart extends GalaxyElement {
+        static get children () {
+          return [
+            ShoppingCount,
+            ShoppingList
+          ]
+        }
+
+        static get template () {
+          return html`
+            <shopping-count></shopping-count>
+            <shopping-list></shopping-list>
+
+            <input type="text" *bind="item.name">
+            <input type="number" *bind.number="item.price">
+            <button type="button" @click="addProduct(item)">+</button>
+          `
+        }
+
+        item = {
+          name: 'Product',
+          price: 100
+        }
+
+        constructor () {
+          super()
+
+          this.$store.mapMutations(this, ['addItem'])
+        }
+
+        addProduct (item) {
+          this.addItem(Object.assign({}, item))
+        }
+      }
+
+      class ShoppingItem {
+        constructor (name, price) {
+          this.name = name
+          this.price = price
+        }
+      }
+
+      setup({
+        root: ShoppingCart,
+        plugins: {
+          $store: new GalaxyStore({
+            state: {
+              items: []
+            },
+            mutations: {
+              addItem ({ items }, item) {
+                items.push(item)
+              },
+              removeItem ({ items }, item) {
+                items.splice(items.indexOf(item), 1)
+              }
+            }
+          })
+        }
+      })
+    </script>
+  </body>
+</html>
