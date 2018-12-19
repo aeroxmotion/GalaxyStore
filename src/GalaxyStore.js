@@ -46,7 +46,6 @@ export default class GalaxyStore extends EventTarget {
   }
 
   mapMutations (target, map) {
-    console.log(target, map)
     eachKey(getMap(map), (method, _map) => {
       target[method] = (...extra) => {
         this.commit(_map[method]/* <- mutation */, ...extra)
