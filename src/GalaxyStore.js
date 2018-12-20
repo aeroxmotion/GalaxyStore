@@ -7,11 +7,11 @@ export default class GalaxyStore extends EventTarget {
   constructor ({ state, mutations }) {
     super()
 
-    this.state = ProxyObserver.observe(state, {}, this._detectCommiting.bind(this))
+    this.state = ProxyObserver.observe(state, {}, this._detectCommitting.bind(this))
     this.mutations = mutations
 
     this._observer = ProxyObserver.get(state)
-    this._commiting = false
+    this._committing = false
   }
 
   commit (mutation, ...extra) {
@@ -19,14 +19,14 @@ export default class GalaxyStore extends EventTarget {
       throw new GalaxyStoreError(`Unknown mutator '${mutation}'`)
     }
 
-    this._commiting = true
+    this._committing = true
 
     const result = this.mutations[mutation](this.state, ...extra)
 
     if (result instanceof Promise) {
-      result.then(() => { this._commiting = false })
+      result.then(() => { this._committing = false })
     } else {
-      this._commiting = false
+      this._committing = false
     }
   }
 
@@ -53,8 +53,8 @@ export default class GalaxyStore extends EventTarget {
     })
   }
 
-  _detectCommiting () {
-    if (!this._commiting) {
+  _detectCommitting () {
+    if (!this._committing) {
       throw new GalaxyStoreError('`state` can\'t be mutated directly')
     }
   }
