@@ -9,7 +9,7 @@
 
     <script type="module">
       import { setup, html, GalaxyElement } from 'https://cdn.jsdelivr.net/gh/LosMaquios/GalaxyJS/dist/galaxy.esm.js'
-      import { GalaxyStore } from './src/index.js'
+      import GalaxyStorePlugin from './src/index.js'
 
       class ShoppingCount extends GalaxyElement {
         static get template () {
@@ -87,8 +87,8 @@
 
       setup({
         root: ShoppingCart,
-        plugins: {
-          $store: new GalaxyStore({
+        plugins: [
+          GalaxyStorePlugin.with({
             state: {
               items: []
             },
@@ -101,7 +101,7 @@
               }
             }
           })
-        }
+        ]
       })
     </script>
   </body>
