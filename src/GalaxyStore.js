@@ -3,10 +3,8 @@ import ProxyObserver from 'https://cdn.jsdelivr.net/gh/LosMaquios/ProxyObserver/
 import GalaxyStoreError from './GalaxyStoreError.js'
 import { getMap, getPathValue, eachKey } from './utils.js'
 
-export default class GalaxyStore extends EventTarget {
+export default class GalaxyStore {
   constructor ({ state, mutations }) {
-    super()
-
     this.state = ProxyObserver.observe(state, {}, this._detectCommitting.bind(this))
     this.mutations = mutations
 
@@ -14,9 +12,17 @@ export default class GalaxyStore extends EventTarget {
     this._committing = false
   }
 
+  subscribe (subscriber) {
+    this._observer.subscribe(subscriber)
+
+    return () => {
+      this._observer.unsubscribe(subscriber)
+    }
+  }
+
   commit (mutation, ...extra) {
     if (!(mutation in this.mutations)) {
-      throw new GalaxyStoreError(`Unknown mutator '${mutation}'`)
+      throw new GalaxyStoreError(`unknown mutation '${mutation}'`)
     }
 
     this._committing = true
@@ -30,32 +36,35 @@ export default class GalaxyStore extends EventTarget {
     }
   }
 
-  mapState (target, map) {
-    eachKey(getMap(map), (prop, _map) => {
-      Object.defineProperty(target, prop, {
-        get: getPathValue.bind(null, this.state, _map[prop])
-      })
-    })
-
-    // In galaxy instances perform render
-    if (target.$render) {
-      this._observer.subscribe(() => {
-        target.$render()
-      })
-    }
-  }
-
-  mapMutations (target, map) {
-    eachKey(getMap(map), (method, _map) => {
-      target[method] = (...extra) => {
-        this.commit(_map[method]/* <- mutation */, ...extra)
-      }
-    })
-  }
-
   _detectCommitting () {
     if (!this._committing) {
       throw new GalaxyStoreError('`state` can\'t be mutated directly')
     }
   }
+}
+
+export function bindState (store, proto, map) {
+  eachKey(getMap(map), (prop, _map) => {
+    Object.defineProperty(proto, prop, {
+      get () {
+        return getPathValue(store.state, _map[prop])
+      }
+    })
+  })
+
+  const { onCreated } = proto
+
+  proto.onCreated = function (...args) {
+
+    // Render on store changes
+    store.subscribe(this.$render.bind(this))
+
+    onCreated && onCreated.apply(this, args)
+  }
+}
+
+export function bindMutations (store, proto, map) {
+  eachKey(getMap(map), (method, _map) => {
+    proto[method] = (...extra) => store.commit(_map[method]/* <- mutation */, ...extra)
+  })
 }

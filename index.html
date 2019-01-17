@@ -12,18 +12,30 @@
       import GalaxyStorePlugin from './src/index.js'
 
       class ShoppingCount extends GalaxyElement {
-        static get template () {
-          return html`Items added: {{ items.length }}`
+        static get withState () {
+          return [
+            'items'
+          ]
         }
 
-        constructor () {
-          super()
-
-          this.$store.mapState(this, ['items'])
+        static get template () {
+          return html`Items added: {{ items.length }}`
         }
       }
 
       class ShoppingList extends GalaxyElement {
+        static get withState () {
+          return [
+            'items'
+          ]
+        }
+
+        static get withMutations () {
+          return [
+            'removeItem'
+          ]
+        }
+
         static get template () {
           return html`
             <ul>
@@ -34,13 +46,6 @@
             </ul>
           `
         }
-
-        constructor () {
-          super()
-
-          this.$store.mapState(this, ['items'])
-          this.$store.mapMutations(this, ['removeItem'])
-        }
       }
 
       class ShoppingCart extends GalaxyElement {
@@ -48,6 +53,12 @@
           return [
             ShoppingCount,
             ShoppingList
+          ]
+        }
+
+        static get withMutations () {
+          return [
+            'addItem'
           ]
         }
 
@@ -65,12 +76,6 @@
         item = {
           name: 'Product',
           price: 100
-        }
-
-        constructor () {
-          super()
-
-          this.$store.mapMutations(this, ['addItem'])
         }
 
         addProduct (item) {

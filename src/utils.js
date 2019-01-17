@@ -12,11 +12,8 @@ export function getPathValue (source, path) {
 export function getMap (props) {
   if (!Array.isArray(props)) return props
 
-  const map = {}
-
-  props.forEach(prop => {
+  return props.reduce((map, prop) => {
     map[prop] = prop
-  })
-
-  return map
+    return map
+  }, {})
 }
